@@ -1,0 +1,12 @@
+setuptools==42
+beautifulsoup4==4.6.0
+lxml==3.8.0
+tornado==6.0.4
+requests==2.23.0
+numpy==1.18.2
+sklearn
+python-crfsuite==0.9.6
+APScheduler==3.6.3
+torch
+pytorch-pretrained-bert==0.6.2
+joblib==0.14.1
