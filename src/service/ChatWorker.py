@@ -15,7 +15,8 @@ from src.utils.logger import LOGGER
 import torch
 from transformers.modeling_gpt2 import GPT2LMHeadModel
 from transformers import BertTokenizer
-
+import torch.nn.functional as F
+import copy
 
 class ChatWorker(object):
     def __init__(self):
@@ -56,13 +57,19 @@ class ChatWorker(object):
 
     def generate(self, input_text,history):
         try:
+            input_text_ids = self.tokenizer.encode(input_text)
+            history_ids = [self.tokenizer.encode(v) for v in history]
+            input_ids = [copy.deepcopy(input_text_ids) for _ in range(self.batch_size)]
             curr_input_tensors = torch.tensor(input_ids).long().to(self.device)
             candidate_responses = self._make_dialogue_response(curr_input_tensors)
             assert len(candidate_responses) >= 1
+            best_response_ids = self._make_mmi_output(candidate_responses,history_ids)
+            best_response = self.tokenizer.convert_tokens_to_ids(best_response_ids)
+            return best_response
         except Exception as e:
             LOGGER.error("FAIL GEN: {}".format(str(e)))
             traceback.print_exc()
-            return
+            return []
 
     def _make_dialogue_response(self, input_tensors):
         try:

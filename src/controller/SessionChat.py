@@ -15,3 +15,11 @@ from src.utils.logger import LOGGER
 class SessionChatHandler(tornado.web.RequestHandler):
     def get(self):
         self.write("please use post")
+
+    def post(self):
+        response = {
+            'status': 0,
+            'data': {},
+            'message':'fail'
+        }
+
