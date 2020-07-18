@@ -15,6 +15,7 @@ from src.utils.logger import LOGGER
 
 class ChatKeeperThread(threading.Thread):
     def __init__(self, partition_index):
+        threading.Thread.__init__(self)
         self.keeper_index = partition_index
         self.history_save_path = config_model.history_path + 'part-{}.json'.format(partition_index)
         self.expire_save_path = config_model.expire_path + 'part-{}.log'.format(partition_index)
@@ -64,14 +65,14 @@ class ChatKeeperThread(threading.Thread):
             with open(self.history_save_path, 'w') as fw:
                 json.dump(self.history_dict,fw)
 
-    def update_history(self,session_id, new_input_ids):
+    def update_history(self,session_id, new_input_text):
         try:
             if session_id not in self.history_dict:
                 self.history_dict[session_id] = {
                     "history": [],
                     "modified_time": time.time()
                 }
-            self.history_dict[session_id]["history"].append(new_input_ids)
+            self.history_dict[session_id]["history"].append(new_input_text)
             self.history_dict[session_id]["modified"] = time.time()
             return True
         except Exception as e:
@@ -87,6 +88,13 @@ class ChatKeeperThread(threading.Thread):
         except Exception as e:
             LOGGER.error("FAIL update history: session_id: {}, error: {}".format(str(session_id), str(e)))
             return []
+
+keepers = {}
+for keeper_index in range(config_model.num_keepers):
+    keepers[keeper_index] = ChatKeeperThread(keeper_index)
+    keepers[keeper_index].start()
+
+
 
 
 

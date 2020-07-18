@@ -14,24 +14,19 @@ class Config:
         self.process_num = 1
         self.port = 10008
 
-        # crf cut word
-        self.cut_word_crf_model_path = 'models/seg'
-        self.stopword_path = 'models/seg/stopword.txt'
 
+        # keeper
+        self.num_keepers = 20
 
 
 
         # log
-        self.log_name = 'mcu-toutiao-filter'
+        self.log_name = 'jzy-chatbot-server'
         self.log_level = 'debug'
         self.log_dir = 'logs/'
 
         self.server_name = 'prod'
-        # data-api
-        self.content_api = {
-            'prod': 'http://data-api.mp.sohuno.com/v2/news/{}',
-            'test': 'http://test.data-api.mp.sohuno.com/v2/news/{}'
-        }
+
 
 class ModelConfig():
     def __init__(self):
@@ -65,7 +60,7 @@ class ModelConfig():
         self.expire_path = 'data/expire/'
         if not os.path.exists(self.expire_path):
             os.makedirs(self.expire_path)
-
+        self.num_keepers = 20
 
 
 config_instance = Config()

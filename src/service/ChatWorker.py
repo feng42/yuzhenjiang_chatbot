@@ -40,6 +40,8 @@ class ChatWorker(object):
             self.repetition_penalty = config_model.repetition_penalty
             self.temperature = config_model.temperature
             self.debug = config_model.debug
+            self.topk = config_model.topk
+            self.topp = config_model.topp
 
 
         except Exception as e:
@@ -58,14 +60,24 @@ class ChatWorker(object):
     def generate(self, input_text,history):
         try:
             input_text_ids = self.tokenizer.encode(input_text)
+
             history_ids = [self.tokenizer.encode(v) for v in history]
-            input_ids = [copy.deepcopy(input_text_ids) for _ in range(self.batch_size)]
+            input_ids = [self.tokenizer.cls_token_id]
+            for history_id, history_utr in enumerate(history_ids):
+                input_ids.extend(history_utr)
+                input_ids.append(self.tokenizer.sep_token_id)
+            print(history)
+            print(history_ids)
+            print(input_ids)
+            input_ids = [copy.deepcopy(input_ids) for _ in range(self.batch_size)]
             curr_input_tensors = torch.tensor(input_ids).long().to(self.device)
+
+
             candidate_responses = self._make_dialogue_response(curr_input_tensors)
             assert len(candidate_responses) >= 1
             best_response_ids = self._make_mmi_output(candidate_responses,history_ids)
-            best_response = self.tokenizer.convert_tokens_to_ids(best_response_ids)
-            return best_response
+            best_response_chars = self.tokenizer.convert_ids_to_tokens(best_response_ids)
+            return best_response_chars
         except Exception as e:
             LOGGER.error("FAIL GEN: {}".format(str(e)))
             traceback.print_exc()
@@ -104,7 +116,7 @@ class ChatWorker(object):
                     break
                 generated.append([token.item() for token in next_token[:, 0]])
                 # 将新生成的token与原来的token进行拼接
-                curr_input_tensors = torch.cat((input_tensors, next_token), dim=-1)
+                input_tensors = torch.cat((input_tensors, next_token), dim=-1)
             candidate_responses = []  # 生成的所有候选response
             for batch_index in range(self.batch_size):
                 response = []
@@ -143,7 +155,7 @@ class ChatWorker(object):
             if loss < min_loss:
                 best_response = response
                 min_loss = loss
-        history.append(best_response)
+        return best_response
 
     def _top_k_top_p_filtering(self, logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):
         """ Filter a distribution of logits using top-k and/or nucleus (top-p) filtering
@@ -176,3 +188,5 @@ class ChatWorker(object):
                 indices_to_remove = sorted_indices[index][sorted_indices_to_remove[index]]
                 logit[indices_to_remove] = filter_value
         return logits
+
+worker = ChatWorker()
