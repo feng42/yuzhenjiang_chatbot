@@ -41,7 +41,7 @@ class SessionChatHandler(tornado.web.RequestHandler):
             keeper_partition = session_id % config_instance.num_keepers
             keepers[keeper_partition].update_history(session_id=session_id,new_input_text=input_text)
             history = keepers[keeper_partition].get_history(session_id=session_id)
-            generate_chars = worker.generate(input_text,history)
+            generate_chars = worker.generate(history)
             print(generate_chars)
             if len(generate_chars) == 0:
                 response['message'] = "fail generate response text"
@@ -54,7 +54,7 @@ class SessionChatHandler(tornado.web.RequestHandler):
                 'output': generate
             }
             print(body_info)
-            LOGGER.info("receive: session_id: {}, input_text: {}, back: {}".format(str(session_id),input_text,json.dumps(body_info)))
+            LOGGER.info("receive: session_id: {}, input_text: {}, back: {}, cost: {} ms".format(str(session_id),input_text,json.dumps(body_info), (time.time()-st)*1000))
             response['data'] = body_info
             response['status'] = 1
             response['message'] = 'success'

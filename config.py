@@ -30,7 +30,7 @@ class Config:
 
 class ModelConfig():
     def __init__(self):
-        self.device = '0' # gpu设备号
+        self.device_nums = '0' # gpu设备号
         self.use_cuda = True
 
         self.temperature = 1 # 生成温度

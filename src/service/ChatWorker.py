@@ -8,7 +8,7 @@
 
 import sys
 import traceback
-
+import os
 from config import config_model
 from src.utils.logger import LOGGER
 
@@ -23,6 +23,8 @@ class ChatWorker(object):
         try:
             self.device = 'cuda' if config_model.use_cuda else 'cpu'
             LOGGER.info('using device: {}'.format(self.device))
+            if self.device == 'cuda':
+                os.environ["CUDA_VISIBLE_DEVICES"] = config_model.device_nums
             self.tokenizer = BertTokenizer(config_model.vocab_path)
 
             # dialogue model
@@ -57,18 +59,18 @@ class ChatWorker(object):
             LOGGER.error("FAIL INIT: {}".format(str(e)))
             traceback.print_exc()
 
-    def generate(self, input_text,history):
+    def generate(self, history):
         try:
-            input_text_ids = self.tokenizer.encode(input_text)
+            print(history)
 
             history_ids = [self.tokenizer.encode(v) for v in history]
             input_ids = [self.tokenizer.cls_token_id]
             for history_id, history_utr in enumerate(history_ids):
                 input_ids.extend(history_utr)
                 input_ids.append(self.tokenizer.sep_token_id)
-            print(history)
-            print(history_ids)
-            print(input_ids)
+
+            # print(history_ids)
+            # print(input_ids)
             input_ids = [copy.deepcopy(input_ids) for _ in range(self.batch_size)]
             curr_input_tensors = torch.tensor(input_ids).long().to(self.device)
 
