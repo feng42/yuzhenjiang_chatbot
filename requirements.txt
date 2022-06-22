@@ -1,5 +1,5 @@
 tornado==6.0.4
 requests>=2.20.0
-numpy==1.18.2
+numpy==1.22.0
 torch
 transformers==2.1.1
