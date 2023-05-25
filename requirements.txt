@@ -1,4 +1,4 @@
-tornado==6.0.4
+tornado==6.3.2
 requests>=2.20.0
 numpy==1.18.2
 torch
